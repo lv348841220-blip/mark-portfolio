@@ -152,13 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('click', () => {
       const src = card.dataset.src;
       if (!src) return;
-      const isLandscape = true; // all cards are landscape now
+      const isPortrait = document.body.classList.contains('portrait-page');
       const video = document.createElement('video');
       video.controls = true;
       video.autoplay = true;
       video.playsInline = true;
       video.className = 'thumb';
-      video.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:cover;background:#000';
+      video.style.cssText = 'width:100%;aspect-ratio:' + (isPortrait ? '9/16' : '16/9') + ';object-fit:cover;background:#000';
       video.innerHTML = '<source src="' + src + '" type="video/mp4">';
       const img = card.querySelector('img.thumb');
       const playBtn = card.querySelector('.play-btn');
