@@ -712,6 +712,18 @@ footer p {
   body { cursor: auto; }
   .cursor { display: none; }
   .nav-links { display: none; }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: rgba(5,5,5,0.96);
+    backdrop-filter: blur(24px);
+    padding: 32px 24px;
+    gap: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
   .nav-toggle { display: flex; }
   nav .inner { padding: 0 24px; }
   .section { padding: 100px 0; }
