@@ -152,13 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('click', () => {
       const src = card.dataset.src;
       if (!src) return;
-      const isLandscape = card.classList.contains('landscape');
+      const isLandscape = true; // all cards are landscape now
       const video = document.createElement('video');
       video.controls = true;
       video.autoplay = true;
       video.playsInline = true;
-      video.className = 'thumb' + (isLandscape ? '' : '');
-      video.style.cssText = 'width:100%;aspect-ratio:' + (isLandscape ? '16/9' : '9/16') + ';object-fit:cover;background:#000';
+      video.className = 'thumb';
+      video.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:cover;background:#000';
       video.innerHTML = '<source src="' + src + '" type="video/mp4">';
       const img = card.querySelector('img.thumb');
       const playBtn = card.querySelector('.play-btn');
