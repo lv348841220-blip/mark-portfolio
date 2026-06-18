@@ -949,6 +949,27 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
   max-height: 80vh;
   display: block;
 }
+.video-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+}
+.video-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 .video-player-title {
   color: rgba(255,255,255,0.8);
   text-align: center;
@@ -1290,7 +1311,11 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
 <div class="video-player-overlay" id="videoPlayerOverlay" onclick="if(event.target===this)closeVideoPlayer()">
   <button class="lightbox-close" style="position:absolute;top:16px;right:20px;z-index:10001;" onclick="closeVideoPlayer()">&times;</button>
   <div class="video-player">
-    <video id="videoPlayer" controls playsinline poster=""></video>
+    <video id="videoPlayer" controls playsinline poster="" preload="none"></video>
+    <div class="video-loading" id="videoLoading">
+      <div class="video-spinner"></div>
+      <span>加载中...</span>
+    </div>
     <p class="video-player-title" id="videoPlayerTitle"></p>
   </div>
 </div>
@@ -1519,13 +1544,18 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
     }
   };
 
+  var currentVideoKey = null;
+  var currentVideoIdx = 0;
+
   function openVideoList(key) {
+    currentVideoKey = key;
+    currentVideoIdx = 0;
     var data = videoData[key];
     var titleEl = document.getElementById('videoModalTitle');
     var gridEl = document.getElementById('videoModalGrid');
     titleEl.textContent = data.title + ' (' + data.items.length + ' 个)';
     gridEl.innerHTML = data.items.map(function(v, idx) {
-      return '<div class="video-item" onclick="playVideo(' + idx + ', \'' + key + '\')">' +
+      return '<div class="video-item" data-key="' + key + '" data-idx="' + idx + '">' +
         '<img src="' + v.thumb + '" alt="' + v.title + '" loading="lazy">' +
         '<div class="video-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>' +
         '<div class="video-title">' + v.title + '</div>' +
@@ -1535,41 +1565,83 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
     document.body.style.overflow = 'hidden';
   }
 
+  // Event delegation for video grid clicks
+  document.getElementById('videoModalGrid').addEventListener('click', function(e) {
+    var item = e.target.closest('.video-item');
+    if (!item) return;
+    var key = item.getAttribute('data-key');
+    var idx = parseInt(item.getAttribute('data-idx'), 10);
+    playVideo(idx, key);
+  });
+
   function closeVideoModal() {
     document.getElementById('videoModal').classList.remove('open');
     document.body.style.overflow = '';
   }
 
-  var currentVideoList = null;
   function playVideo(idx, key) {
     var v = videoData[key].items[idx];
-    currentVideoList = { key: key, idx: idx };
+    currentVideoKey = key;
+    currentVideoIdx = idx;
     var player = document.getElementById('videoPlayer');
-    player.src = v.video;
+    var titleEl = document.getElementById('videoPlayerTitle');
+    var loadingEl = document.getElementById('videoLoading');
+
+    // Reset
+    player.style.display = '';
+    if (loadingEl) loadingEl.style.display = 'flex';
+    titleEl.textContent = v.title;
+    titleEl.style.color = '';
+
+    // Remove old error listener
+    player.onerror = null;
+
     player.poster = v.thumb;
-    document.getElementById('videoPlayerTitle').textContent = v.title;
+    player.src = v.video;
+    player.load();
+
+    player.onerror = function() {
+      if (loadingEl) loadingEl.style.display = 'none';
+      titleEl.textContent = '⚠ 加载失败：' + v.title;
+      titleEl.style.color = '#e74c3c';
+      console.error('Video load error:', v.video);
+    };
+
+    player.oncanplay = function() {
+      if (loadingEl) loadingEl.style.display = 'none';
+      player.play().catch(function(err) {
+        if (loadingEl) loadingEl.style.display = 'none';
+        titleEl.textContent = '⚠ 播放被阻止：' + v.title + '（点击播放按钮重试）';
+        titleEl.style.color = '#f39c12';
+        console.warn('Video play() rejected:', err.message);
+      });
+    };
+
     document.getElementById('videoPlayerOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
-    player.play();
   }
 
   function closeVideoPlayer() {
     var overlay = document.getElementById('videoPlayerOverlay');
     var player = document.getElementById('videoPlayer');
+    var loadingEl = document.getElementById('videoLoading');
     player.pause();
     player.src = '';
+    player.poster = '';
+    player.onerror = null;
+    player.oncanplay = null;
     overlay.classList.remove('open');
     document.body.style.overflow = '';
+    if (loadingEl) loadingEl.style.display = 'none';
   }
 
-  // Close player when video ends (optional)
+  // Auto-play next on video end
   document.getElementById('videoPlayer').addEventListener('ended', function() {
-    // Auto-play next if available
-    if (currentVideoList) {
-      var list = videoData[currentVideoList.key].items;
-      var nextIdx = currentVideoList.idx + 1;
+    if (currentVideoKey) {
+      var list = videoData[currentVideoKey].items;
+      var nextIdx = currentVideoIdx + 1;
       if (nextIdx < list.length) {
-        playVideo(nextIdx, currentVideoList.key);
+        playVideo(nextIdx, currentVideoKey);
       }
     }
   });
