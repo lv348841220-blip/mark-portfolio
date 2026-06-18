@@ -143,6 +143,14 @@ nav .inner {
   text-align: center;
   position: relative;
   overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, rgba(184,151,106,0.06) 0%, transparent 60%);
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-border), transparent);
 }
 .hero-avatar {
   width: 56px; height: 56px;
@@ -166,7 +174,7 @@ nav .inner {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(0.65rem, 1.1vw, 0.78rem);
   font-weight: 400;
-  color: var(--text3);
+  color: var(--gold);
   letter-spacing: 6px;
   text-transform: uppercase;
   margin-bottom: 40px;
@@ -212,6 +220,13 @@ nav .inner {
 .section {
   padding: 200px 0;
   position: relative;
+}
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-border), transparent);
 }
 .section-inner {
   max-width: 1400px;
@@ -331,9 +346,28 @@ nav .inner {
 /* ===== MARQUEE ===== */
 .marquee-wrap {
   overflow: hidden;
-  padding: 80px 0;
+  padding: 100px 0;
   border-top: 1px solid rgba(255,255,255,0.03);
   border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(135deg, rgba(184,151,106,0.03) 0%, transparent 50%, rgba(184,151,106,0.03) 100%);
+  position: relative;
+}
+.marquee-wrap::before,
+.marquee-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee-wrap::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg), transparent);
+}
+.marquee-wrap::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--bg), transparent);
 }
 .marquee-track {
   display: flex;
@@ -344,16 +378,17 @@ nav .inner {
 }
 .marquee-track span {
   font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
   font-weight: 300;
-  color: var(--text3);
-  letter-spacing: 2px;
+  color: var(--text2);
+  letter-spacing: 3px;
   flex-shrink: 0;
 }
 .marquee-track .sep {
   color: var(--gold);
-  opacity: 0.3;
+  opacity: 0.5;
   font-weight: 300;
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
 }
 @keyframes marquee {
   0% { transform: translateX(0); }
@@ -667,9 +702,18 @@ body.portrait-page .video-card .thumb {
 
 /* ===== FOOTER ===== */
 footer {
-  padding: 56px 0;
+  padding: 80px 0;
   text-align: center;
   border-top: 1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(180deg, transparent, rgba(184,151,106,0.03));
+  position: relative;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-border), transparent);
 }
 footer p {
   color: var(--text3);
@@ -730,7 +774,7 @@ footer p {
   .nav-toggle { display: flex; }
   nav .inner { padding: 0 24px; }
   .section { padding: 100px 0; }
-  .section-inner { padding: 0 24px; }
+  .section-inner { padding: 0 24px; grid-template-columns: 1fr !important; gap: 40px !important; }
   .cat-hero .inner { padding: 0 24px; }
   .works-grid { grid-template-columns: 1fr; }
   .work-card.wide, .work-card.narrow, .work-card.full { grid-column: span 1; }
