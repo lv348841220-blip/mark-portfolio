@@ -1311,7 +1311,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
 <div class="video-player-overlay" id="videoPlayerOverlay" onclick="if(event.target===this)closeVideoPlayer()">
   <button class="lightbox-close" style="position:absolute;top:16px;right:20px;z-index:10001;" onclick="closeVideoPlayer()">&times;</button>
   <div class="video-player">
-    <video id="videoPlayer" controls playsinline poster="" preload="none"></video>
+    <video id="videoPlayer" controls playsinline poster="" preload="metadata"></video>
     <div class="video-loading" id="videoLoading">
       <div class="video-spinner"></div>
       <span>加载中...</span>
@@ -1588,33 +1588,33 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
     var loadingEl = document.getElementById('videoLoading');
 
     // Reset
-    player.style.display = '';
+    player.style.display = 'none';
     if (loadingEl) loadingEl.style.display = 'flex';
     titleEl.textContent = v.title;
     titleEl.style.color = '';
 
-    // Remove old error listener
-    player.onerror = null;
-
     player.poster = v.thumb;
     player.src = v.video;
-    player.load();
 
-    player.onerror = function() {
+    player.onloadedmetadata = function() {
+      player.style.display = '';
       if (loadingEl) loadingEl.style.display = 'none';
-      titleEl.textContent = '⚠ 加载失败：' + v.title;
-      titleEl.style.color = '#e74c3c';
-      console.error('Video load error:', v.video);
+      var playPromise = player.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(function(err) {
+          if (loadingEl) loadingEl.style.display = 'none';
+          titleEl.textContent = '⚠ 请手动点击播放：' + v.title;
+          titleEl.style.color = '#f39c12';
+          console.warn('Auto-play blocked:', err.message);
+        });
+      }
     };
 
-    player.oncanplay = function() {
+    player.onerror = function() {
+      player.style.display = 'none';
       if (loadingEl) loadingEl.style.display = 'none';
-      player.play().catch(function(err) {
-        if (loadingEl) loadingEl.style.display = 'none';
-        titleEl.textContent = '⚠ 播放被阻止：' + v.title + '（点击播放按钮重试）';
-        titleEl.style.color = '#f39c12';
-        console.warn('Video play() rejected:', err.message);
-      });
+      titleEl.textContent = '⚠ 视频加载失败：' + v.title;
+      titleEl.style.color = '#e74c3c';
     };
 
     document.getElementById('videoPlayerOverlay').classList.add('open');
@@ -1629,7 +1629,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
     player.src = '';
     player.poster = '';
     player.onerror = null;
-    player.oncanplay = null;
+    player.onloadedmetadata = null;
     overlay.classList.remove('open');
     document.body.style.overflow = '';
     if (loadingEl) loadingEl.style.display = 'none';
